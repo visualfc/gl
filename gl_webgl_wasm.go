@@ -76,9 +76,9 @@ func BlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha Enum) 
 }
 
 func BufferData(target Enum, src []byte, usage Enum) {
-	p, fn := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("bufferData", int(target), p, int(usage))
-	fn()
+	free()
 }
 
 func BufferInit(target Enum, size int, usage Enum) {
@@ -477,16 +477,18 @@ func PolygonOffset(factor, units float32) {
 
 func ReadPixels(dst []byte, x, y, width, height int, format, ty Enum) {
 	println("ReadPixels: not yet tested (TODO: remove this after it's confirmed to work. Your feedback is welcome.)")
-	p, _ := SliceToTypedArray(dst)
 	if ty == Enum(UNSIGNED_BYTE) {
+		p, free := SliceToTypedArray(dst)
+		defer free()
 		c.Call("readPixels", x, y, width, height, int(format), int(ty), p)
 	} else {
 		tmpDst := make([]float32, len(dst)/4)
-		p, _ := SliceToTypedArray(tmpDst)
+		p, free := SliceToTypedArray(tmpDst)
 		c.Call("readPixels", x, y, width, height, int(format), int(ty), p)
 		for i, f := range tmpDst {
 			binary.LittleEndian.PutUint32(dst[i*4:], math.Float32bits(f))
 		}
+		free()
 	}
 }
 
@@ -545,8 +547,9 @@ func TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum,
 }
 
 func TexSubImage2D(target Enum, level int, x, y, width, height int, format, ty Enum, data []byte) {
-	p, _ := SliceToTypedArray(data)
+	p, free := SliceToTypedArray(data)
 	c.Call("texSubImage2D", int(target), level, x, y, width, height, int(format), int(ty), p)
+	free()
 }
 
 func TexParameterf(target, pname Enum, param float32) {
@@ -592,8 +595,9 @@ func Uniform2f(dst Uniform, v0, v1 float32) {
 }
 
 func Uniform2fv(dst Uniform, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniform2fv", dst.Value, p)
+	free()
 }
 
 func Uniform2i(dst Uniform, v0, v1 int) {
@@ -601,8 +605,9 @@ func Uniform2i(dst Uniform, v0, v1 int) {
 }
 
 func Uniform2iv(dst Uniform, src []int32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniform2iv", dst.Value, p)
+	free()
 }
 
 func Uniform3f(dst Uniform, v0, v1, v2 float32) {
@@ -610,8 +615,9 @@ func Uniform3f(dst Uniform, v0, v1, v2 float32) {
 }
 
 func Uniform3fv(dst Uniform, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniform3fv", dst.Value, p)
+	free()
 }
 
 func Uniform3i(dst Uniform, v0, v1, v2 int32) {
@@ -619,8 +625,9 @@ func Uniform3i(dst Uniform, v0, v1, v2 int32) {
 }
 
 func Uniform3iv(dst Uniform, src []int32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniform3iv", dst.Value, p)
+	free()
 }
 
 func Uniform4f(dst Uniform, v0, v1, v2, v3 float32) {
@@ -628,8 +635,9 @@ func Uniform4f(dst Uniform, v0, v1, v2, v3 float32) {
 }
 
 func Uniform4fv(dst Uniform, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniform4fv", dst.Value, p)
+	free()
 }
 
 func Uniform4i(dst Uniform, v0, v1, v2, v3 int32) {
@@ -637,24 +645,27 @@ func Uniform4i(dst Uniform, v0, v1, v2, v3 int32) {
 }
 
 func Uniform4iv(dst Uniform, src []int32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniform4iv", dst.Value, p)
+	free()
 }
 
 func UniformMatrix2fv(dst Uniform, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniformMatrix2fv", dst.Value, false, p)
+	free()
 }
 
 func UniformMatrix3fv(dst Uniform, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniformMatrix3fv", dst.Value, false, p)
+	free()
 }
 
 func UniformMatrix4fv(dst Uniform, src []float32) {
-	p, fn := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("uniformMatrix4fv", dst.Value, false, p)
-	fn()
+	free()
 }
 
 func UseProgram(p Program) {
@@ -674,8 +685,9 @@ func VertexAttrib1f(dst Attrib, x float32) {
 }
 
 func VertexAttrib1fv(dst Attrib, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("vertexAttrib1fv", dst.Value, p)
+	free()
 }
 
 func VertexAttrib2f(dst Attrib, x, y float32) {
@@ -683,8 +695,9 @@ func VertexAttrib2f(dst Attrib, x, y float32) {
 }
 
 func VertexAttrib2fv(dst Attrib, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("vertexAttrib2fv", dst.Value, p)
+	free()
 }
 
 func VertexAttrib3f(dst Attrib, x, y, z float32) {
@@ -692,8 +705,9 @@ func VertexAttrib3f(dst Attrib, x, y, z float32) {
 }
 
 func VertexAttrib3fv(dst Attrib, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("vertexAttrib3fv", dst.Value, p)
+	free()
 }
 
 func VertexAttrib4f(dst Attrib, x, y, z, w float32) {
@@ -701,8 +715,9 @@ func VertexAttrib4f(dst Attrib, x, y, z, w float32) {
 }
 
 func VertexAttrib4fv(dst Attrib, src []float32) {
-	p, _ := SliceToTypedArray(src)
+	p, free := SliceToTypedArray(src)
 	c.Call("vertexAttrib4fv", dst.Value, p)
+	free()
 }
 
 func VertexAttribPointer(dst Attrib, size int, ty Enum, normalized bool, stride, offset int) {
